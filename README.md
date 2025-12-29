@@ -34,3 +34,11 @@ A Python-based playlist management system with a command-line interface (CLI), F
   - Query playlists and search songs programmatically.
 
 ---
+
+## **Installation**
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/miator/playlist-manager.git
+cd playlist-manager
