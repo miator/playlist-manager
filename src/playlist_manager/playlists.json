@@ -1,0 +1,260 @@
+{
+  "playlists": [
+    {
+      "name": "my",
+      "songs": [
+        {
+          "title": "star",
+          "artist": "duran",
+          "duration": 456,
+          "genre": "rock"
+        }
+      ]
+    },
+    {
+      "name": "Initial Playlist",
+      "songs": [
+        {
+          "title": "Golden",
+          "artist": "Jill Scott",
+          "duration": 231,
+          "genre": "R&B/Soul"
+        },
+        {
+          "title": "911",
+          "artist": "Teddy Swims",
+          "duration": 166,
+          "genre": "Pop"
+        },
+        {
+          "title": "Jazz",
+          "artist": "Eva",
+          "duration": 198,
+          "genre": "French Pop"
+        },
+        {
+          "title": "Let It Snow! Let It Snow! Let It Snow!",
+          "artist": "Dean Martin",
+          "duration": 117,
+          "genre": "Christmas: Classic"
+        },
+        {
+          "title": "Jazz (Ain't Nothin' But Soul)",
+          "artist": "Richard Wess & Betty Carter",
+          "duration": 116,
+          "genre": "Pop"
+        },
+        {
+          "title": "Like a Tattoo",
+          "artist": "Sade",
+          "duration": 218,
+          "genre": "R&B/Soul"
+        },
+        {
+          "title": "Jazz",
+          "artist": "Eva",
+          "duration": 198,
+          "genre": "French Pop"
+        },
+        {
+          "title": "Christmas Time Is Here (Instrumental)",
+          "artist": "Vince Guaraldi Trio",
+          "duration": 366,
+          "genre": "Holiday"
+        },
+        {
+          "title": "Time After Time",
+          "artist": "Cyndi Lauper",
+          "duration": 245,
+          "genre": "Pop"
+        },
+        {
+          "title": "Jazz (We've Got) [Radio Version]",
+          "artist": "A Tribe Called Quest",
+          "duration": 251,
+          "genre": "Hip-Hop/Rap"
+        },
+        {
+          "title": "Rock",
+          "artist": "Stepz",
+          "duration": 144,
+          "genre": "Hip-Hop/Rap"
+        },
+        {
+          "title": "Smells Like Teen Spirit",
+          "artist": "Nirvana",
+          "duration": 301,
+          "genre": "Rock"
+        },
+        {
+          "title": "Bring Me to Life",
+          "artist": "Evanescence",
+          "duration": 235,
+          "genre": "Hard Rock"
+        },
+        {
+          "title": "Thunder",
+          "artist": "Imagine Dragons",
+          "duration": 187,
+          "genre": "Alternative"
+        },
+        {
+          "title": "Stressed Out",
+          "artist": "twenty one pilots",
+          "duration": 202,
+          "genre": "Alternative"
+        },
+        {
+          "title": "Thunderstruck",
+          "artist": "AC/DC",
+          "duration": 292,
+          "genre": "Hard Rock"
+        },
+        {
+          "title": "Back In Black",
+          "artist": "AC/DC",
+          "duration": 256,
+          "genre": "Hard Rock"
+        },
+        {
+          "title": "Hotel California",
+          "artist": "Eagles",
+          "duration": 391,
+          "genre": "Rock"
+        },
+        {
+          "title": "Rock",
+          "artist": "SEVENTEEN",
+          "duration": 191,
+          "genre": "K-Pop"
+        },
+        {
+          "title": "Jingle Bell Rock",
+          "artist": "Bobby Helms",
+          "duration": 130,
+          "genre": "Holiday"
+        },
+        {
+          "title": "Perfect",
+          "artist": "Ed Sheeran",
+          "duration": 263,
+          "genre": "Pop"
+        },
+        {
+          "title": "Thinkin Bout You",
+          "artist": "Frank Ocean",
+          "duration": 200,
+          "genre": "Pop"
+        },
+        {
+          "title": "Blinding Lights",
+          "artist": "The Weeknd",
+          "duration": 201,
+          "genre": "R&B/Soul"
+        },
+        {
+          "title": "Heat Waves",
+          "artist": "Glass Animals",
+          "duration": 238,
+          "genre": "Alternative"
+        },
+        {
+          "title": "Dance Monkey",
+          "artist": "Tones And I",
+          "duration": 209,
+          "genre": "Alternative"
+        },
+        {
+          "title": "ocean eyes",
+          "artist": "Billie Eilish",
+          "duration": 200,
+          "genre": "Alternative"
+        },
+        {
+          "title": "Lover",
+          "artist": "Taylor Swift",
+          "duration": 221,
+          "genre": "Pop"
+        },
+        {
+          "title": "POP!",
+          "artist": "NAYEON",
+          "duration": 168,
+          "genre": "Dance"
+        },
+        {
+          "title": "I Remember Everything (feat. Kacey Musgraves)",
+          "artist": "Zach Bryan",
+          "duration": 227,
+          "genre": "Country"
+        },
+        {
+          "title": "BIRDS OF A FEATHER",
+          "artist": "Billie Eilish",
+          "duration": 210,
+          "genre": "Alternative"
+        },
+        {
+          "title": "Hip Hop",
+          "artist": "August Alsina",
+          "duration": 209,
+          "genre": "R&B/Soul"
+        },
+        {
+          "title": "One Dance (feat. Wizkid & Kyla)",
+          "artist": "Drake",
+          "duration": 173,
+          "genre": "Hip-Hop/Rap"
+        },
+        {
+          "title": "Talk (feat. Disclosure)",
+          "artist": "Khalid",
+          "duration": 197,
+          "genre": "R&B/Soul"
+        },
+        {
+          "title": "YOSEMITE",
+          "artist": "Travis Scott",
+          "duration": 150,
+          "genre": "Hip-Hop/Rap"
+        },
+        {
+          "title": "Location",
+          "artist": "Khalid",
+          "duration": 219,
+          "genre": "R&B/Soul"
+        },
+        {
+          "title": "Young Dumb & Broke",
+          "artist": "Khalid",
+          "duration": 202,
+          "genre": "R&B/Soul"
+        },
+        {
+          "title": "Circles",
+          "artist": "Post Malone",
+          "duration": 215,
+          "genre": "Hip-Hop/Rap"
+        },
+        {
+          "title": "Hold On, We're Going Home (feat. Majid Jordan)",
+          "artist": "Drake",
+          "duration": 231,
+          "genre": "Hip-Hop/Rap"
+        },
+        {
+          "title": "Sunflower (Spider-Man: Into the Spider-Verse)",
+          "artist": "Post Malone & Swae Lee",
+          "duration": 158,
+          "genre": "Hip-Hop/Rap"
+        },
+        {
+          "title": "luther",
+          "artist": "Kendrick Lamar & SZA",
+          "duration": 177,
+          "genre": "Hip-Hop/Rap"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+[project]
+name = "playlist-manager"
+version = "0.1.0"
+authors = [{name="Star"}]
+description = "Advanced Playlist Manager"
+readme = "readme.md"
+requires-python = ">=3.9"
+dependencies = ["fastapi", "sqlalchemy", "requests", "mypy", "flake8"]
