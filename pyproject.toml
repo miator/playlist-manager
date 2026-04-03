@@ -1,8 +1,23 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "playlist-manager"
 version = "0.1.0"
-authors = [{name="Star"}]
-description = "Advanced Playlist Manager"
-readme = "readme.md"
+description = "A small Python playlist manager with a CLI, FastAPI API, JSON persistence, and iTunes data loading."
+readme = "README.md"
 requires-python = ">=3.9"
-dependencies = ["fastapi", "sqlalchemy", "requests", "mypy", "flake8"]
+authors = [{ name = "Star" }]
+dependencies = [
+    "fastapi>=0.115,<1.0",
+    "requests>=2.31,<3.0",
+    "sqlalchemy>=2.0,<3.0",
+    "uvicorn>=0.30,<1.0",
+]
+
+[project.scripts]
+playlist-manager = "playlist_manager.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
