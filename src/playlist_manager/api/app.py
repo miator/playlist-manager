@@ -1,12 +1,17 @@
-from fastapi import FastAPI, HTTPException, Depends
+from typing import Generator, Optional
+
+from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy.orm import Session
+
+from playlist_manager.api.schemas import SongCreate, SongRead, SongUpdate
 from playlist_manager.db import crud, database, models
 
 models.Base.metadata.create_all(bind=database.engine)
+
 app = FastAPI(title="Playlist Manager API")
 
 
-def get_db():
+def get_db() -> Generator[Session, None, None]:
     db = database.SessionLocal()
     try:
         yield db
@@ -14,12 +19,12 @@ def get_db():
         db.close()
 
 
-@app.post("/songs/")
-def add_song(title: str, artist: str, duration: int, genre: str, playlist_id: int, db: Session = Depends(get_db)):
-    return crud.create_song(db, title, artist, duration, genre, playlist_id)
+@app.post("/songs/", response_model=SongRead)
+def add_song(payload: SongCreate, db: Session = Depends(get_db)):
+    return crud.create_song(db, **payload.model_dump())
 
 
-@app.get("/songs/{song_id}")
+@app.get("/songs/{song_id}", response_model=SongRead)
 def read_song(song_id: int, db: Session = Depends(get_db)):
     song = crud.get_song(db, song_id)
     if not song:
@@ -27,15 +32,17 @@ def read_song(song_id: int, db: Session = Depends(get_db)):
     return song
 
 
-@app.get("/songs/")
-def list_songs(playlist_id: int = None, db: Session = Depends(get_db)):
-    return crud.get_songs(db, playlist_id)
+@app.get("/songs/", response_model=list[SongRead])
+def list_songs(
+    playlist_name: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    return crud.get_songs(db, playlist_name)
 
 
-@app.put("/songs/{song_id}")
-def edit_song(song_id: int, title: str = None, artist: str = None, duration: int = None, genre: str = None,
-              db: Session = Depends(get_db)):
-    song = crud.update_song(db, song_id, title=title, artist=artist, duration=duration, genre=genre)
+@app.put("/songs/{song_id}", response_model=SongRead)
+def edit_song(song_id: int, payload: SongUpdate, db: Session = Depends(get_db)):
+    song = crud.update_song(db, song_id, **payload.model_dump(exclude_none=True))
     if not song:
         raise HTTPException(status_code=404, detail="Song not found")
     return song
