@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String
+
 from playlist_manager.db.database import Base
 
 
@@ -10,4 +11,4 @@ class SongModel(Base):
     artist = Column(String, nullable=False)
     duration = Column(Integer, nullable=False)
     genre = Column(String, nullable=False)
-    playlist_name = Column(String, nullable=False)  # matches CRUD
+    playlist_name = Column(String, nullable=False, index=True)
