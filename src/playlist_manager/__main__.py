@@ -1,18 +1,61 @@
-from playlist_manager.core.manager import PlaylistManager
+from typing import Optional
+
+from playlist_manager.scripts.load_initial_data import load_initial_data
 from playlist_manager.core.entities import Song
-from playlist_manager.utils import parse_duration, fmt_duration
-from playlist_manager.concurency.load_initial_data import load_initial_data
+from playlist_manager.core.manager import PlaylistManager
+from playlist_manager.utils import fmt_duration, parse_duration
 
 
-def main():
-    with PlaylistManager('playlists.json') as manager:
-        # Load initial iTunes songs if playlist does not exist
+def get_default_playlist_name(manager: PlaylistManager) -> Optional[str]:
+    if not manager:
+        return None
+    return next(iter(manager))
+
+
+def prompt_for_existing_playlist(manager: PlaylistManager) -> Optional[str]:
+    if not manager:
+        print("No playlists exist. Create one first.")
+        return None
+
+    playlist_name = input(f"Enter playlist name ({', '.join(manager.keys())}): ").strip()
+    if playlist_name not in manager:
+        print(f"Playlist '{playlist_name}' does not exist.")
+        return None
+
+    return playlist_name
+
+
+def print_playlist(playlist_name: str, manager: PlaylistManager) -> None:
+    playlist = manager[playlist_name]
+    print(f"\nPlaylist '{playlist_name}':")
+
+    for index, song in enumerate(playlist.list_songs(), start=1):
+        status = " <- now playing" if index - 1 == playlist.current_index else ""
+        print(
+            f"{index}. {song.title} by {song.artist} "
+            f"[{fmt_duration(song.duration)}] ({song.genre}){status}"
+        )
+
+    print(
+        f"Total songs: {len(playlist)}, "
+        f"total duration: {fmt_duration(playlist.total_duration())}"
+    )
+
+
+def print_current_song(song: Song) -> None:
+    print(f"Now playing: {song.title} by {song.artist} [{fmt_duration(song.duration)}]")
+
+
+def main() -> None:
+    with PlaylistManager("../playlists.json") as manager:
         if "Initial Playlist" not in manager:
-            print("⏳ Loading initial playlist with iTunes songs...")
+            print("Loading initial playlist with iTunes songs...")
             load_initial_data(manager)
-            print("✅ Initial playlist loaded!")
+            print("Initial playlist loaded.")
 
-        print("\n--- Welcome to Your Playlist Manager ---")
+        active_playlist_name = get_default_playlist_name(manager)
+
+        print("\nPlaylist Manager")
 
         while True:
             print("\nMenu:")
@@ -22,93 +65,85 @@ def main():
             print("4) Play next song")
             print("5) Play previous song")
             print("6) Search songs")
-            print("7) Save and Exit")
+            print("7) Save and exit")
 
             choice = input("Choose an option [1-7]: ").strip()
 
             try:
-                if choice == '1':
+                if choice == "1":
                     name = input("Enter playlist name: ").strip()
-                    if not name:
-                        raise ValueError("Playlist name cannot be empty")
                     manager.create_playlist(name)
-                    print(f"✅ Playlist '{name}' created!")
+                    active_playlist_name = name
+                    print(f"Playlist '{name}' created.")
 
-                elif choice == '2':
-                    if not manager:
-                        print("No playlists exist. Create one first!")
+                elif choice == "2":
+                    playlist_name = prompt_for_existing_playlist(manager)
+                    if not playlist_name:
                         continue
-                    pname = input(f"Enter playlist name ({', '.join(manager.keys())}): ").strip()
-                    if pname not in manager:
-                        print(f"Playlist '{pname}' does not exist.")
-                        continue
+
+                    active_playlist_name = playlist_name
                     title = input("Song title: ").strip()
                     artist = input("Artist: ").strip()
                     duration_raw = input("Duration (mm:ss or seconds): ").strip()
                     genre = input("Genre: ").strip()
 
-                    if not all([title, artist, duration_raw, genre]):
-                        raise ValueError("All song details are required!")
+                    song = Song(
+                        title=title,
+                        artist=artist,
+                        duration=parse_duration(duration_raw),
+                        genre=genre,
+                    )
+                    manager.add_song_to_playlist(playlist_name, song)
+                    print(f"Added '{song.title}' to '{playlist_name}'.")
 
-                    duration = parse_duration(duration_raw)
-                    song = Song(title, artist, duration, genre)
-                    manager.add_song_to_playlist(pname, song)
-                    print(f"🎵 Added '{song.title}' to '{pname}'")
+                elif choice == "3":
+                    playlist_name = prompt_for_existing_playlist(manager)
+                    if playlist_name:
+                        active_playlist_name = playlist_name
+                        print_playlist(playlist_name, manager)
 
-                elif choice == '3':
-                    if not manager:
-                        print("No playlists exist.")
+                elif choice == "4":
+                    if not active_playlist_name:
+                        print("No playlist selected yet.")
                         continue
-                    pname = input(f"Enter playlist name ({', '.join(manager.keys())}): ").strip()
-                    if pname not in manager:
-                        print(f"Playlist '{pname}' does not exist.")
+                    print_current_song(manager[active_playlist_name].play_next())
+
+                elif choice == "5":
+                    if not active_playlist_name:
+                        print("No playlist selected yet.")
                         continue
-                    playlist = manager[pname]
-                    print(f"\nPlaylist '{pname}':")
-                    for i, s in enumerate(playlist.list_songs(), start=1):
-                        status = "<- NOW PLAYING" if i-1 == playlist._current_index else ""
-                        print(f"{i}. {s.title} by {s.artist} [{fmt_duration(s.duration)}] ({s.genre}) {status}")
-                    print(f"Total songs: {len(playlist)}, Total duration: {fmt_duration(playlist.total_duration())}")
+                    print_current_song(manager[active_playlist_name].play_prev())
 
-                elif choice == '4':
-                    pname = input(f"Enter playlist name ({', '.join(manager.keys())}): ").strip()
-                    if pname in manager:
-                        manager[pname].play_next()
-                    else:
-                        print("Playlist does not exist.")
-
-                elif choice == '5':
-                    pname = input(f"Enter playlist name ({', '.join(manager.keys())}): ").strip()
-                    if pname in manager:
-                        manager[pname].play_prev()
-                    else:
-                        print("Playlist does not exist.")
-
-                elif choice == '6':
+                elif choice == "6":
                     title = input("Search by title (optional): ").strip() or None
                     artist = input("Search by artist (optional): ").strip() or None
                     if not title and not artist:
-                        print("Enter at least title or artist.")
+                        print("Enter at least a title or artist.")
                         continue
+
                     results = manager.search_all_playlists(title=title, artist=artist)
                     if not results:
                         print("No songs found.")
                         continue
-                    for pname, songs in results.items():
-                        print(f"\nFound in '{pname}':")
-                        for s in songs:
-                            print(f" - {s.title} by {s.artist} [{fmt_duration(s.duration)}] ({s.genre})")
 
-                elif choice == '7':
+                    for playlist_name, songs in results.items():
+                        print(f"\nFound in '{playlist_name}':")
+                        for song in songs:
+                            print(
+                                f"- {song.title} by {song.artist} "
+                                f"[{fmt_duration(song.duration)}] ({song.genre})"
+                            )
+
+                elif choice == "7":
                     manager.save()
-                    print("💾 Library saved. Goodbye!")
+                    print("Library saved. Goodbye.")
                     break
 
                 else:
                     print("Invalid option.")
 
-            except Exception as e:
-                print(f"Error: {e}")
+            except (KeyError, ValueError) as exc:
+                print(f"Error: {exc}")
 
 
 if __name__ == "__main__":
