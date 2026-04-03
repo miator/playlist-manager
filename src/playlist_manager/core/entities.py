@@ -1,144 +1,129 @@
-from typing import Dict, Any
-from playlist_manager.utils import fmt_duration
+from dataclasses import dataclass
+from typing import Any, Optional
+
+from playlist_manager.utils import fmt_duration, normalize_text
 
 
-class Entity:
-    def __init__(self, name: str):
-        if not name:
-            raise ValueError("Name cannot be empty")
-        self._name = name
+@dataclass
+class Song:
+    title: str
+    artist: str
+    duration: int
+    genre: str
 
-    @property
-    def name(self) -> str:
-        return self._name
+    def __post_init__(self) -> None:
+        self.title = normalize_text(self.title, "Title")
+        self.artist = normalize_text(self.artist, "Artist")
+        self.genre = normalize_text(self.genre, "Genre")
+        self.duration = int(self.duration)
 
-    @name.setter
-    def name(self, value: str):
-        if not value:
-            raise ValueError("Name cannot be empty")
-        self._name = value
+        if self.duration <= 0:
+            raise ValueError("Duration must be greater than 0")
 
+    def __repr__(self) -> str:
+        return (
+            f"Song('{self.title}', '{self.artist}', "
+            f"{fmt_duration(self.duration)}, '{self.genre}')"
+        )
 
-class Song(Entity):
-    def __init__(self, title: str, artist: str, duration: int, genre: str):
-        super().__init__(title)
-        self.artist = artist
-        self.duration = duration
-        self.genre = genre
-
-    @property
-    def title(self): return self.name
-
-    @title.setter
-    def title(self, value): self.name = value
-
-    @property
-    def artist(self): return self._artist
-
-    @artist.setter
-    def artist(self, value):
-        if not value:
-            raise ValueError("Artist cannot be empty")
-        self._artist = value
-
-    @property
-    def duration(self): return self._duration
-
-    @duration.setter
-    def duration(self, value):
-        if value < 0:
-            raise ValueError("Duration cannot be negative")
-        self._duration = int(value)
-
-    @property
-    def genre(self): return self._genre
-
-    @genre.setter
-    def genre(self, value):
-        if not value:
-            raise ValueError("Genre cannot be empty")
-        self._genre = value
-
-    def __repr__(self):
-        return f"Song('{self.title}', '{self.artist}', {fmt_duration(self.duration)}, '{self.genre}')"
-
-    def __eq__(self, other):
-        return isinstance(other, Song) and self.title == other.title and self.artist == other.artist
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {'title': self.title, 'artist': self.artist, 'duration': self.duration, 'genre': self.genre}
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "title": self.title,
+            "artist": self.artist,
+            "duration": self.duration,
+            "genre": self.genre,
+        }
 
     @classmethod
-    def from_dict(cls, d: Dict[str, Any]):
-        return cls(d['title'], d['artist'], int(d['duration']), d['genre'])
+    def from_dict(cls, data: dict[str, Any]) -> "Song":
+        return cls(
+            title=data["title"],
+            artist=data["artist"],
+            duration=int(data["duration"]),
+            genre=data["genre"],
+        )
 
 
-class Playlist(Entity):
+class Playlist:
     def __init__(self, name: str):
-        super().__init__(name)
+        self.name = normalize_text(name, "Playlist name")
         self._songs: list[Song] = []
-        self._current_index: int = -1
+        self._current_index = -1
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._songs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Playlist('{self.name}', {len(self)} songs)"
 
-    def __eq__(self, other):
-        return isinstance(other, Playlist) and self.name == other.name and self._songs == other._songs
+    @property
+    def current_index(self) -> int:
+        return self._current_index
 
-    def add_song(self, song: Song):
+    def add_song(self, song: Song) -> None:
         self._songs.append(song)
         if self._current_index == -1:
             self._current_index = 0
 
-    def remove_song(self, title: str, artist: str = None):
-        for i, s in enumerate(self._songs):
-            if s.title == title and (artist is None or s.artist == artist):
-                del self._songs[i]
+    def remove_song(self, title: str, artist: Optional[str] = None) -> None:
+        normalized_title = normalize_text(title, "Song title")
+        normalized_artist = artist.strip() if artist else None
+
+        for index, song in enumerate(self._songs):
+            title_matches = song.title == normalized_title
+            artist_matches = normalized_artist is None or song.artist == normalized_artist
+            if title_matches and artist_matches:
+                del self._songs[index]
                 if not self._songs:
                     self._current_index = -1
                 elif self._current_index >= len(self._songs):
                     self._current_index = len(self._songs) - 1
                 return
-        raise KeyError(f"Song '{title}' not found.")
 
-    def list_songs(self):
+        raise KeyError(f"Song '{normalized_title}' not found")
+
+    def list_songs(self) -> list[Song]:
         return list(self._songs)
 
-    def play_next(self):
+    def play_next(self) -> Song:
         if not self._songs:
-            print("Playlist is empty")
-            return
+            raise ValueError("Playlist is empty")
+
         self._current_index = (self._current_index + 1) % len(self._songs)
-        song = self._songs[self._current_index]
-        print(f"Now playing: {song.title} by {song.artist} [{fmt_duration(song.duration)}]")
+        return self._songs[self._current_index]
 
-    def play_prev(self):
+    def play_prev(self) -> Song:
         if not self._songs:
-            print("Playlist is empty")
-            return
+            raise ValueError("Playlist is empty")
+
         self._current_index = (self._current_index - 1) % len(self._songs)
-        song = self._songs[self._current_index]
-        print(f"Now playing: {song.title} by {song.artist} [{fmt_duration(song.duration)}]")
+        return self._songs[self._current_index]
 
-    def total_duration(self):
-        return sum(s.duration for s in self._songs)
+    def total_duration(self) -> int:
+        return sum(song.duration for song in self._songs)
 
-    def find(self, title=None, artist=None):
-        res = []
-        for s in self._songs:
-            if (title and title.lower() in s.title.lower()) or (artist and artist.lower() in s.artist.lower()):
-                res.append(s)
-        return res
+    def find(
+        self,
+        title: Optional[str] = None,
+        artist: Optional[str] = None,
+    ) -> list[Song]:
+        title_query = title.strip().lower() if title else None
+        artist_query = artist.strip().lower() if artist else None
 
-    def to_dict(self):
-        return {'name': self.name, 'songs': [s.to_dict() for s in self._songs]}
+        matches: list[Song] = []
+        for song in self._songs:
+            title_matches = title_query and title_query in song.title.lower()
+            artist_matches = artist_query and artist_query in song.artist.lower()
+            if title_matches or artist_matches:
+                matches.append(song)
+        return matches
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"name": self.name, "songs": [song.to_dict() for song in self._songs]}
 
     @classmethod
-    def from_dict(cls, d):
-        p = cls(d['name'])
-        for sdict in d.get('songs', []):
-            p.add_song(Song.from_dict(sdict))
-        return p
+    def from_dict(cls, data: dict[str, Any]) -> "Playlist":
+        playlist = cls(data["name"])
+        for song_data in data.get("songs", []):
+            playlist.add_song(Song.from_dict(song_data))
+        return playlist
