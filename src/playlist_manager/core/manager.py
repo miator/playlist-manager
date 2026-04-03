@@ -1,67 +1,90 @@
 import json
-import os
+from pathlib import Path
+from typing import Optional
+
 from playlist_manager.core.entities import Playlist, Song
-from playlist_manager.utils import ensure_playlist_exists
+from playlist_manager.utils import ensure_playlist_exists, normalize_text
 
 
 class PlaylistManager(dict):
-    def __init__(self, filename='playlists.json'):
+    def __init__(self, filename: str = "playlists.json"):
         super().__init__()
-        self._filename = filename
+        self._file_path = Path(filename)
 
-    def __enter__(self):
+    def __enter__(self) -> "PlaylistManager":
         self.load()
         return self
 
-    def __exit__(self, exc_type, exc, tb):
+    def __exit__(self, exc_type, exc, tb) -> bool:
         self.save()
         return False
 
-    def load(self):
-        if not os.path.exists(self._filename):
+    def load(self) -> None:
+        if not self._file_path.exists():
             return
+
         try:
-            with open(self._filename, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-            self.clear()
-            for pd in data.get('playlists', []):
-                self[pd['name']] = Playlist.from_dict(pd)
-        except Exception:
-            print("Could not load playlists. Starting fresh.")
+            with self._file_path.open("r", encoding="utf-8") as file:
+                data = json.load(file)
+        except (json.JSONDecodeError, OSError):
+            print("Could not load playlists. Starting with an empty library.")
+            return
 
-    def save(self):
-        data = {'playlists': [p.to_dict() for p in self.values()]}
-        with open(self._filename, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        self.clear()
+        for playlist_data in data.get("playlists", []):
+            playlist = Playlist.from_dict(playlist_data)
+            self[playlist.name] = playlist
 
-    def create_playlist(self, name: str):
-        if not name:
-            raise ValueError("Playlist name cannot be empty")
-        if name in self:
-            raise KeyError(f"Playlist '{name}' exists")
-        self[name] = Playlist(name)
+    def save(self) -> None:
+        data = {"playlists": [playlist.to_dict() for playlist in self.values()]}
+        with self._file_path.open("w", encoding="utf-8") as file:
+            json.dump(data, file, indent=2, ensure_ascii=False)
+
+    def create_playlist(self, name: str) -> Playlist:
+        normalized_name = normalize_text(name, "Playlist name")
+        if normalized_name in self:
+            raise KeyError(f"Playlist '{normalized_name}' already exists")
+
+        playlist = Playlist(normalized_name)
+        self[normalized_name] = playlist
+        return playlist
 
     @ensure_playlist_exists
-    def add_song_to_playlist(self, playlist_name: str, song: Song):
+    def add_song_to_playlist(self, playlist_name: str, song: Song) -> None:
         self[playlist_name].add_song(song)
 
     @ensure_playlist_exists
-    def remove_song_from_playlist(self, playlist_name: str, title: str, artist: str = None):
+    def remove_song_from_playlist(
+        self,
+        playlist_name: str,
+        title: str,
+        artist: Optional[str] = None,
+    ) -> None:
         self[playlist_name].remove_song(title, artist)
 
     @ensure_playlist_exists
-    def list_playlist_songs(self, playlist_name: str):
+    def list_playlist_songs(self, playlist_name: str) -> list[Song]:
         return self[playlist_name].list_songs()
 
-    def search_all_playlists(self, title=None, artist=None):
-        results = {}
-        for pname, p in self.items():
-            found = p.find(title, artist)
-            if found:
-                results[pname] = found
+    def search_all_playlists(
+        self,
+        title: Optional[str] = None,
+        artist: Optional[str] = None,
+    ) -> dict[str, list[Song]]:
+        results: dict[str, list[Song]] = {}
+        for playlist_name, playlist in self.items():
+            matches = playlist.find(title=title, artist=artist)
+            if matches:
+                results[playlist_name] = matches
         return results
 
-    def stats(self):
-        total_songs = sum(len(p) for p in self.values())
-        per_playlist = {pname: {'count': len(p), 'duration': p.total_duration()} for pname, p in self.items()}
-        return {'total_songs': total_songs, 'per_playlist': per_playlist}
+    def stats(self) -> dict[str, object]:
+        total_songs = sum(len(playlist) for playlist in self.values())
+        per_playlist = {
+            playlist_name: {
+                "count": len(playlist),
+                "duration": playlist.total_duration(),
+            }
+            for playlist_name, playlist in self.items()
+        }
+        return {"total_songs": total_songs, "per_playlist": per_playlist}
